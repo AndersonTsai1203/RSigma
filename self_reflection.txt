@@ -1,0 +1,74 @@
+# RSheets Mark Request
+
+# Marked Questions
+
+These questions are listed in the spec, and you must fill them out
+to receive marks for the Design Questions.
+
+## Question 1:
+In the provided starter code, we provide a Command struct, and implement the FromStr trait for it. Here are three alternate ways we could have implemented this code. For each one, make a judgement on whether it would be better or worse than the current implementation, with a brief explanation.
+Rather than building a separate struct and parser, we could have parsed the string from the user directly.
+Rather than implementing the FromStr, we could have written a separate function parse.
+Rather than defining named fields on the enum (e.g. cell_identifier on the get variant), we could have made seperate GetCommand and SetCommand structs.
+
+1. Parsing strings directly would be worse than the current implementation. The Command struct provides type safety and encapsulation, making the code more maintainable and less error-prone. Direct string parsing would scatter parsing logic throughout the code.
+
+2. Using a separate parse function would be worse. The FromStr trait is idiomatic Rust, providing a standard way to parse strings into types. It enables using the built-in parse() method and integrates well with Rust's error handling.
+
+3. Using separate GetCommand and SetCommand structs would be better. This would provide stronger type safety and make it clearer what fields each command type requires. It would also make adding new command variants easier in the future.
+
+## Question 2:
+Identify the three lines of code where you handle Scalar, Vector and Matrix variables.
+Describe how much code is shared between the three types of variables, versus how much requires seperate handling. Could you have improved this at all?
+Imagine the assignment added a new type of variable, MatrixList (a list of matricies of the same size): how would you need to change your code to support this?
+
+The three lines handling different variable types are:
+    Scalar: src/spreadsheet.rs:241: if !var_name.contains('_')
+    Vector:
+        Vertical: src/spreadsheet.rs:317: self.get_vertical_vector(start, end)
+        Horizontal: src/spreadsheet.rs:320: self.get_horizontal_vector(start, end)
+    Matrix: src/spreadsheet.rs:323: self.get_matrix(start, end)
+
+The code shares the variable resolution logic but requires separate handling for result construction. Could improve by using a trait for different variable types, allowing more code reuse. For MatrixList support, would need to add a new CellArgument variant and extend get_range_argument to detect and handle multiple matrices.
+
+## Question 3:
+Identify two specific lines that have required the use of different concurrency utilities, datastructures or synchronization primitives (e.g. mutex, channels, threads, scopes). For each one, explain a possible concurrency bug which Rust's type system has helped you avoid.
+
+1. src/spreadsheet.rs:41: cells: Arc<Mutex<HashMap<CellIdentifier, CellInfo>>> - Rust's type system prevents data races by ensuring exclusive access through Mutex. Without this, multiple threads could simultaneously modify the cells HashMap.
+
+2. src/spreadsheet.rs:42: update_sender: mpsc::Sender<UpdateMessage> - The type system ensures thread-safe message passing. Without this, we could have memory corruption from multiple threads trying to update cells simultaneously without synchronization.
+
+## Question 4:
+What line/lines of code show how you deal with the "complex edge case" in part 4. Justify how your solution ensures you'll never have the problem described.
+
+The complex edge case is handled at src/spreadsheet.rs:589: if current_time > cell.last_update_time. Each cell stores its last update timestamp (src/spreadsheet.rs:19), and updates only occur if the new value's timestamp is more recent. This ensures older calculations can't overwrite newer ones, even if they complete later.
+
+## Question 5:
+Your program is given the following input:
+    set A1 5
+    set B1 A1
+    set C1 B1
+    set A1 7
+    sleep 100
+    get C1
+At the point where the set A1 7 command is issued, describe how your solution reads that command, and updates each cell from A1 to B1 to C1. In your answer, specifically identify every line of code where a data is passed between your program's threads.
+
+When set A1 7 is issued:
+    Command received in lib.rs:34 through read_message
+    Passed to lib.rs:49 spreadsheet.set (src/spreadsheet.rs:121)
+    Update message sent via update_sender to worker thread (src/spreadsheet.rs:209)
+    Worker thread receives message through receiver (src/spreadsheet.rs:413)
+    Dependency graph built from A1→B1→C1 (src/spreadsheet.rs:425-444)
+    Cells updated in order: A1, B1, C1 through shared Arc<Mutex> (src/spreadsheet.rs:499-608)
+
+# Questions to the Marker (OPTIONAL)
+
+Remember: you don't have to fill these out; but if
+you want to get feedback on a particular element of
+your code; you can!
+
+1.
+
+2.
+
+3.
