@@ -1,10 +1,3 @@
-# RSheets Mark Request
-
-# Marked Questions
-
-These questions are listed in the spec, and you must fill them out
-to receive marks for the Design Questions.
-
 ## Question 1:
 In the provided starter code, we provide a Command struct, and implement the FromStr trait for it. Here are three alternate ways we could have implemented this code. For each one, make a judgement on whether it would be better or worse than the current implementation, with a brief explanation.
 Rather than building a separate struct and parser, we could have parsed the string from the user directly.
@@ -60,15 +53,3 @@ When set A1 7 is issued:
     Worker thread receives message through receiver (src/spreadsheet.rs:413)
     Dependency graph built from A1→B1→C1 (src/spreadsheet.rs:425-444)
     Cells updated in order: A1, B1, C1 through shared Arc<Mutex> (src/spreadsheet.rs:499-608)
-
-# Questions to the Marker (OPTIONAL)
-
-Remember: you don't have to fill these out; but if
-you want to get feedback on a particular element of
-your code; you can!
-
-1.
-
-2.
-
-3.
